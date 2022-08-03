@@ -39,7 +39,7 @@ class BaseProxy:
         args = parser.parse_args()
 
         self.exitstatus = 0
-        self.server_address: str = args.address
+        self.server_address = args.address
         self.argv = args.cmd
         log_handler = logging.NullHandler() if not os.environ.get('CI') \
             else logging.FileHandler("proxy.log")
@@ -50,7 +50,7 @@ class BaseProxy:
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.info("Starting proxy: %s", app_name)
 
-        self.sock: Union[socket.socket, None] = None
+        self.sock = None
         if self.server_address:
             # Create a UDS socket
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -58,7 +58,8 @@ class BaseProxy:
             self.sock.settimeout(0.5)
             _, port = self.sock.getsockname()
             with open(self.server_address, 'w') as f:
-                f.write(f"{port}")
+                # f.write(f"{port}")
+                f.write(str(port))
 
         # Create the filter
         self.filter = [(stream_filter.Filter(), lambda _: None)]
@@ -75,7 +76,7 @@ class BaseProxy:
             try:
                 os.execvp(self.argv[0], self.argv)
             except OSError as e:
-                sys.stderr.write(f"Failed to launch: {e}\n")
+                sys.stderr.write("Failed to launch:", e)
                 os._exit(1)
 
     def run(self):
